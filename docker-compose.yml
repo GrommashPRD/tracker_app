@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  web:
+    build: .
+    image: tracker
+    container_name: checker
+    restart: always
+    command: runserver 0.0.0.0:8000
+    ports:
+      - 8000:8000
+    env_file:
+      - ./.env.db
+    depends_on:
+      - migrate
+
+  db:
+    image: postgres:17
+    restart: always
+    env_file:
+      - ./.env.db
+    ports:
+      - 5432:5432
+
+  migrate:
+    image: tracker
+    restart: on-failure
+    command: migrate
+    env_file:
+      - ./.env.db
+    depends_on:
+      - db
