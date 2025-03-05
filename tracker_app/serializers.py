@@ -26,6 +26,7 @@ class ViewPeriodSerializer(serializers.Serializer):
         return data
 
 class DomainSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField()
     class Meta:
         model = UserDomainsHistory
         fields = ('user_id', 'domain', 'created_at')

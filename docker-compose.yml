@@ -2,20 +2,19 @@ version: '3.9'
 
 services:
   web:
-    build: .
     image: tracker
     container_name: checker
-    restart: always
     command: runserver 0.0.0.0:8000
     ports:
       - 8000:8000
     env_file:
-      - ./.env.db
+      - ./.env.dev
     depends_on:
       - migrate
 
   db:
     image: postgres:17
+    container_name: tracker_db
     restart: always
     env_file:
       - ./.env.db
@@ -27,6 +26,6 @@ services:
     restart: on-failure
     command: migrate
     env_file:
-      - ./.env.db
+      - ./.env.dev
     depends_on:
       - db

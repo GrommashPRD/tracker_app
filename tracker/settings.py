@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tracker_app.apps.TrackerAppConfig',
     'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -57,30 +60,39 @@ MIDDLEWARE = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-
     'formatters': {
-        'main_format': {
+        'verbose': {
             'format': '{asctime} - {levelname} - {module} - {filename} - {message}',
             'style': '{',
         },
-    },
-
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'main_format',
+        'simple': {
+            'format': '{levelname} - {message}',
+            'style': '{',
         },
-        'file': {
+    },
+    'handlers': {
+        'app_file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'formatter': 'main_format',
-            'filename': 'debug.log',
-        }
+            'filename': os.path.join(BASE_DIR,'logs', 'app.log'),
+            'formatter': 'verbose',
+        },
+        'test_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR,'tests', 'test.log'),
+        },
     },
     'loggers': {
-        'main': {
+        'django': {
+            'handlers': ['app_file'],
             'level': 'INFO',
-            'handlers': ['console', 'file'],
+            'propagate': False,
+        },
+        'app.tests': {
+            'handlers': ['test_file'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }
@@ -113,7 +125,7 @@ WSGI_APPLICATION = 'tracker.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", 'postgres'),
+        "NAME": os.environ.get("POSTGRES_DB", 'tracker'),
         "USER": os.environ.get("POSTGRES_USER", 'postgres'),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD",'postgress'),
         "HOST": os.environ.get('POSTGRES_HOST', 'localhost'),
@@ -162,3 +174,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ]
+}

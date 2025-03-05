@@ -1,13 +1,46 @@
 import pytest
-
+from rest_framework import status
 from rest_framework.test import APIClient
-from tracker_app.utils import linksParser
+from django.contrib.auth import get_user_model
 
-client = APIClient()
+User = get_user_model()
 
+
+@pytest.fixture
+def api_client():
+    return APIClient()
+
+#Создаем юзера который будет автирозовываться для тестов.
+def create_and_login_user(api_client, username='testuser', password='testpassword123'):
+    #Создание тест-юзера
+    user_data = {
+        'username': username,
+        'password': password,
+    }
+    response = api_client.post('/api/auth/users/', user_data, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
+
+    #Авторизовываем тест-юзера
+    login_data = {
+        'username': username,
+        'password': password
+    }
+    response = api_client.post('/auth/token/login/', login_data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+
+    #Вытягиваем токен access
+    token = response.data['auth_token']
+    api_client.credentials(HTTP_AUTHORIZATION='Token ' + token)
+
+    return User.objects.get(username=username)
+
+#Тест что юзер авторизовался и запулил свои url
 @pytest.mark.django_db
-def test_add_links():
+def test_user_auth_and_create_post(api_client):
+    user = create_and_login_user(api_client)
+
     links_data = {
+        "user_id": user.id,
         "urls": [
             "https://ya.ru/",
             "https://ya.ru/search/?text=мемы+с+котиками",
@@ -15,13 +48,18 @@ def test_add_links():
             "https://stackoverflow.com/questions/65724760/how-it-is"
         ]
     }
+    response = api_client.post('/visited_links', data=links_data, format='json')
 
-    response = client.post('/visited_links', data=links_data, format='json', HTTP_X_USER_ID='1')
-    assert {'status': 'ok'} == response.data
     assert response.status_code == 200
+    assert {'status': 'ok'} == response.data
 
-def test_with_no_user():
+#Тест что юзер взял чужой ID
+@pytest.mark.django_db
+def test_with_alien_id(api_client):
+    user = create_and_login_user(api_client)
+
     links_data = {
+        "user_id": 23,
         "urls": [
             "https://ya.ru/",
             "https://ya.ru/search/?text=мемы+с+котиками",
@@ -30,33 +68,41 @@ def test_with_no_user():
         ]
     }
 
-    response = client.post('/visited_links', data=links_data, format='json')
+    response = api_client.post('/visited_links', data=links_data, format='json')
 
-    assert response.status_code == 403
+    assert response.status_code == 401
+    assert {'error': 'Вы вводите не свой ID'} == response.data
 
-def test_wrong_body():
+
+#Тест что юзер передает пустой список URL
+@pytest.mark.django_db
+def test_create_post_with_empty_urls(api_client):
+    user = create_and_login_user(api_client)
+
     links_data = {
-        "urlz": [
-            "https://ya.ru/",
-            "https://ya.ru/search/?text=мемы+с+котиками",
-            "https://sber.ru",
-            "https://stackoverflow.com/questions/65724760/how-it-is"
+        "user_id": user.id,
+        "urls": []
+    }
+
+    response = api_client.post('/visited_links', data=links_data, format='json')
+
+    assert response.status_code == 400  # Ожидаем ошибку из-за пустого списка
+    assert {'message': 'URL list cannot be empty', 'code': 'empty_url_list'} == response.data
+
+
+#Тест, что юзер передает ID неферного формата str вместо int
+@pytest.mark.django_db
+def test_create_post_with_invalid_user_id(api_client):
+    user = create_and_login_user(api_client)
+
+    links_data = {
+        "user_id": "asd",
+        "urls": [
+            "https://ya.ru/"
         ]
     }
 
-    response = client.post('/visited_links', data=links_data, format='json', HTTP_X_USER_ID='1')
+    response = api_client.post('/visited_links', data=links_data, format='json')
 
     assert response.status_code == 400
-
-def test_unique_domains():
-    expected_domains = {'ya.ru', 'sber.ru', 'stackoverflow.com'}
-    urls =  [
-        "https://ya.ru/",
-        "https://ya.ru/search/?text=мемы+с+котиками",
-        "https://sber.ru",
-        "https://stackoverflow.com/questions/65724760/how-it-is"
-    ]
-
-    domains = linksParser.get_unique_domains(urls)
-    assert set(domains) == expected_domains
-
+    assert {'message': 'user_id must be a number', 'code': 'invalid_user_id'} == response.data
