@@ -14,11 +14,11 @@ http://127.0.0.1:8000/api/auth/users/
 ```
 curl --location 'http://127.0.0.1:8000/api/auth/users/' \
 
---header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
+--header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7456hTkc' \
 
---form 'username="PavelE"' \
+--form 'username="root"' \
 
---form 'password="Tkbcttdrf"'
+--form 'password="root"'
 ```
 2) Авторизоваться и получить access_token:
 http://127.0.0.1:8000/auth/token/login/
@@ -26,9 +26,9 @@ http://127.0.0.1:8000/auth/token/login/
 ```
 curl --location 'http://127.0.0.1:8000/auth/token/login/' \
 
---header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
+--header 'Cookie: csrftoken=cguiLxO9TwfglI56V7UdG7hTkc' \
 
---form 'username="PavelE"' \
+--form 'username="root"' \
 
 --form 'password="Tkbcttdrf"'
 ```
@@ -46,7 +46,7 @@ curl --location 'http://127.0.0.1:8000/visited_links' \
 
 --header 'Content-Type: application/json' \
 
---header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
+--header 'Cookie: csrftoken=cguiLxO9TfgtBlIUy8sV7UdG7hTkc' \
 
 --data '{
 
@@ -74,11 +74,11 @@ http://127.0.0.1:8000/visited_domains?start=1&end=9999999999
 ```
 curl --location --request GET 'http://127.0.0.1:8000/visited_domains?start=1&end=9999999999' \
 
---header 'Authorization: Token bfa2b190d10f2473ddeee129139387379fccfdf3' \
+--header 'Authorization: Token bfa2b190d10f2473dfg139387379fccfdf3' \
 
 --header 'X-User-ID: 2' \
 
---header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
+--header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tfgsV7UdG7hTkc' \
 
 --form 'user_id="2"'
 ```
