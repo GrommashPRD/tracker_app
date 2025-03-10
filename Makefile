@@ -1,9 +1,5 @@
-APP_NAME = tracker
-
-DB_CONTAINER_NAME = tracker_db
-
 start:
-	@docker build -t $(APP_NAME) .
+	@docker build -t tracker .
 	@docker-compose up -d
 
 stop:
@@ -11,14 +7,14 @@ stop:
 
 test:
 	@docker-compose down
-	@docker stop $(DB_CONTAINER_NAME) || exit 0
+	@docker stop test_postgres || exit 0
 	@docker pull postgres:17
-	@docker run --rm --name $(DB_CONTAINER_NAME) \
-	    -e POSTGRES_PASSWORD=postgres \
+	@docker run --rm --name test_postgres \
+	    -e POSTGRES_PASSWORD=postgress \
 	    -e POSTGRES_USER=postgres \
 	    -e POSTGRES_DB=postgres \
 	    -d -p 5432:5432 postgres:17
-	@container_name=$(DB_CONTAINER_NAME); \
+	@container_name=test_postgres; \
     pattern="ready to accept connections"; \
     while ! docker logs "$$container_name" | grep -q "$$pattern"; do \
       echo "Waiting for the container to be ready..."; \
@@ -27,7 +23,7 @@ test:
     echo "Container is ready"
 	@python manage.py migrate
 	@pytest
-	@docker stop $(DB_CONTAINER_NAME)
+	@docker stop test_postgres
 
 migrate:
 	@docker-compose run web python manage.py migrate
