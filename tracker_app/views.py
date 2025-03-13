@@ -1,36 +1,49 @@
-from django.db import IntegrityError, OperationalError
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.utils import timezone
-
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-from tracker_app import serializers
-from tracker_app.models import UserDomainsHistory
-from tracker_app.serializers import VisitedLinksSerializer, DomainSerializer, ViewPeriodSerializer
-from tracker_app.utils import linksParser, created_or_updated
-from tracker_app.swagger_files.swagger_schemas import get_user_urls_schema, post_user_urls_schema
-
 import logging
 import datetime
 import pytz
+import time
+
+from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.utils import timezone
+from tracker_app.models import UserDomainsHistory
+from tracker_app.serializers import VisitedLinksSerializer, DomainSerializer, ViewPeriodSerializer
+from tracker_app.tasks import add_data_in_database
+from tracker_app.utils import linksParser
+from tracker_app.swagger_files.swagger_schemas import get_user_urls_schema, post_user_urls_schema
+from prometheus_client import Counter, Histogram
+
 
 # Create your views here.
+
+
 logger = logging.getLogger('django')
+
+# Счетчик для фиксирования количества запросов
+REQUEST_COUNT_POST = Counter('post_view_requests_total', 'Total number of requests to Views')
+REQUEST_COUNT_GET = Counter('get_view_requests_total', 'Total number of requests to Views')
+
+# Гистограмма для измерения времени ответа
+REQUEST_LATENCY_POST = Histogram('post_view_request_latency_seconds', 'Latency of requests to Views in seconds')
+REQUEST_LATENCY_GET = Histogram('get_view_request_latency_seconds', 'Latency of requests to Views in seconds')
+
 
 class LinksView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+
     @post_user_urls_schema()
+    @REQUEST_LATENCY_POST.time()
     def post(self, request):
+
+        REQUEST_COUNT_POST.inc()
+
+        start_time = time.time()
+
         user_id_from_request = request.data.get('user_id')
 
         if user_id_from_request is None:
@@ -59,23 +72,15 @@ class LinksView(APIView):
             logger.error("Invalid URL list")
             return Response({'message': 'Internal error', 'code': 'internal_error'}, status=500)
 
-        try:
-            created_or_updated.create_or_update(domains, user_id_from_request)
-        except IntegrityError as e:
-            logger.error(f"IntegrityError: {str(e)}")
-            return Response({"error": "Conflict due to integrity violation."}, status=409)
+        now_timestamp_seconds = int((timezone.now() - datetime.datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds())
 
-        except OperationalError as e:
-            logger.error(f"OperationalError: {str(e)}")
-            return Response({"error": "Database operation error."}, status=503)
+        add_data_in_database.delay(
+            user_id_from_request,
+            domains,
+            now_timestamp_seconds,
+        )
 
-        except TypeError as e:
-            logger.error(f"TypeError: {str(e)}")
-            return Response({"error": "Invalid input data."}, status=400)
-
-        except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
-            return Response({"error": "An unexpected error occurred."}, status=500)
+        latency = time.time() - start_time
 
         return Response({'status': 'ok'}, status=200)
 
@@ -85,7 +90,12 @@ class DomainsView(APIView):
     permission_classes = [IsAuthenticated]
 
     @get_user_urls_schema()
+    @REQUEST_LATENCY_GET.time()
     def get(self, request):
+
+        REQUEST_COUNT_GET.inc()
+
+        start_time = time.time()
 
         user_id_from_request = request.query_params.get('user_id')
 
@@ -110,6 +120,8 @@ class DomainsView(APIView):
         except Exception as err:
             logger.error(err)
             return Response({'status': 'Internal error', 'code': 'internal_error'}, status=500)
+
+        latency = time.time() - start_time
 
         return Response(user_domains_in_range)
 

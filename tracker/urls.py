@@ -14,6 +14,9 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+from prometheus_client import make_wsgi_app
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import admin
 from django.urls import path, include, re_path
 from .yasg import urlpatterns as doc_urls
@@ -21,6 +24,8 @@ from .yasg import urlpatterns as doc_urls
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('tracker_app.urls')),
+    path('', include('django_prometheus.urls')),
+    path('metrics/', csrf_exempt(make_wsgi_app())),
     path('api/auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 ]

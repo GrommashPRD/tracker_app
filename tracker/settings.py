@@ -13,11 +13,8 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -29,7 +26,6 @@ SECRET_KEY = 'django-insecure-s_x&xvhfz+o-7e1u8$&*d_^mqvurwv*ng^3u3o6w3wcxr$@)7r
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-
 
 # Application definition
 
@@ -43,6 +39,7 @@ INSTALLED_APPS = [
     'tracker_app.apps.TrackerAppConfig',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_prometheus',
     'djoser',
     'drf_yasg',
 ]
@@ -55,6 +52,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 LOGGING = {
@@ -74,13 +73,13 @@ LOGGING = {
         'app_file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR,'logs', 'app.log'),
+            'filename': os.path.join(BASE_DIR, 'logs', 'app.log'),
             'formatter': 'verbose',
         },
         'test_file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR,'tests', 'test.log'),
+            'filename': os.path.join(BASE_DIR, 'tests', 'test.log'),
         },
     },
     'loggers': {
@@ -117,7 +116,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'tracker.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -127,12 +125,11 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("DB_NAME", 'tracker'),
         "USER": os.environ.get("DB_USER", 'postgres'),
-        "PASSWORD": os.environ.get("DB_PASS",'postgress'),
+        "PASSWORD": os.environ.get("DB_PASS", 'postgress'),
         "HOST": os.environ.get('DB_HOST', 'localhost'),
         "PORT": os.environ.get("DB_PORT", 5432),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -152,7 +149,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -163,7 +159,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -182,3 +177,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ]
 }
+
+CELERY_TIMEZONE = 'Europe/Moscow'
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_BROKER", 'redis://redis:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
