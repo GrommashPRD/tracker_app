@@ -25,7 +25,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('tracker_app.urls')),
     path('', include('django_prometheus.urls')),
-    path('metrics/', csrf_exempt(make_wsgi_app())),
     path('api/auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 ]

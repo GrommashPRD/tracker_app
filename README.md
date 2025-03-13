@@ -6,6 +6,8 @@
 3) make test
 4) make migrate
 
+METRICS - http://127.0.0.1:8000/metrics
+
 DOCUMENTATION API - http://127.0.0.1:8000/swagger/?format=openapi
 
 Для того чтобы начать пользоваться приложением вам нужно:
