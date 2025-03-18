@@ -67,12 +67,23 @@ services:
     volumes:
       - ./redis/data/:/usr/utils/app
 
-  prometheus:
-    image: prom/prometheus
+#  prometheus:
+#    image: prom/prometheus
+#    ports:
+#      - "9090:9090"
+#    volumes:
+#      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+
+  graphite:
+    image: graphiteapp/graphite-statsd
     ports:
-      - "9090:9090"
+      - "8080:80"
+    environment:
+      - GRAPHITE_DBNAME=graphite
+      - GRAPHITE_DBUSER=graphite
+      - GRAPHITE_DBPASS=graphite
     volumes:
-      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+      - graphite_data:/opt/graphite/storage
 
 
   grafana:
@@ -82,9 +93,12 @@ services:
       - "3000:3000"
     volumes:
       - grafana_storage:/var/lib/grafana
+    depends_on:
+      - graphite
 
 
 volumes:
+  graphite_data:
   grafana_storage:
 
 

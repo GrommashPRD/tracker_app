@@ -3,12 +3,15 @@ import datetime
 import pytz
 import time
 
+
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import timezone
+
+from tracker.settings import statsd_client
 from tracker_app.models import UserDomainsHistory
 from tracker_app.serializers import VisitedLinksSerializer, DomainSerializer, ViewPeriodSerializer
 from tracker_app.tasks import add_data_in_database
@@ -17,18 +20,19 @@ from tracker_app.swagger_files.swagger_schemas import get_user_urls_schema, post
 from prometheus_client import Counter, Histogram
 
 
+
 # Create your views here.
 
 
 logger = logging.getLogger('django')
 
-# Счетчик для фиксирования количества запросов
-REQUEST_COUNT_POST = Counter('post_view_requests_total', 'Total number of requests to Views')
-REQUEST_COUNT_GET = Counter('get_view_requests_total', 'Total number of requests to Views')
-
-# Гистограмма для измерения времени ответа
-REQUEST_LATENCY_POST = Histogram('post_view_request_latency_seconds', 'Latency of requests to Views in seconds')
-REQUEST_LATENCY_GET = Histogram('get_view_request_latency_seconds', 'Latency of requests to Views in seconds')
+# # Счетчик для фиксирования количества запросов
+# REQUEST_COUNT_POST = Counter('post_view_requests_total', 'Total number of requests to Views')
+# REQUEST_COUNT_GET = Counter('get_view_requests_total', 'Total number of requests to Views')
+#
+# # Гистограмма для измерения времени ответа
+# REQUEST_LATENCY_POST = Histogram('post_view_request_latency_seconds', 'Latency of requests to Views in seconds')
+# REQUEST_LATENCY_GET = Histogram('get_view_request_latency_seconds', 'Latency of requests to Views in seconds')
 
 
 class LinksView(APIView):
@@ -37,12 +41,12 @@ class LinksView(APIView):
 
 
     @post_user_urls_schema()
-    @REQUEST_LATENCY_POST.time()
+    # @REQUEST_LATENCY_POST.time()
     def post(self, request):
-
-        REQUEST_COUNT_POST.inc()
-
-        start_time = time.time()
+        #
+        # REQUEST_COUNT_POST.inc()
+        #
+        # start_time = time.time()
 
         user_id_from_request = request.data.get('user_id')
 
@@ -90,12 +94,12 @@ class DomainsView(APIView):
     permission_classes = [IsAuthenticated]
 
     @get_user_urls_schema()
-    @REQUEST_LATENCY_GET.time()
+    # @REQUEST_LATENCY_GET.time()
     def get(self, request):
-
-        REQUEST_COUNT_GET.inc()
-
-        start_time = time.time()
+        #
+        # REQUEST_COUNT_GET.inc()
+        #
+        # start_time = time.time()
 
         user_id_from_request = request.query_params.get('user_id')
 
