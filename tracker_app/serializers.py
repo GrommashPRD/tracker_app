@@ -1,5 +1,3 @@
-from email._header_value_parser import Domain
-
 from rest_framework import serializers
 
 from tracker_app.models import UserDomainsHistory

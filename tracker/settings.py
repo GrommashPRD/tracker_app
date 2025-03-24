@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
-from statsd import StatsClient
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -61,7 +61,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{asctime} - {levelname} - {module} - {filename} - {message}',
+            'format': '{asctime} - {levelname} - {module}.py - {filename} - {message}',
             'style': '{',
         },
         'simple': {
@@ -85,7 +85,7 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['app_file'],
-            'level': 'INFO',
+            'level': 'ERROR',
             'propagate': False,
         },
         'app.tests': {
