@@ -8,7 +8,7 @@
 
 METRICS - http://127.0.0.1:8000/metrics
 
-DOCUMENTATION API - http://127.0.0.1:8000/swagger/?format=openapi
+DOCUMENTATION API - http://127.0.0.1:8000/swagger/
 
 Для того чтобы начать пользоваться приложением вам нужно:
 1) Зарегистрировать пользователя:
