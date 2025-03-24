@@ -63,7 +63,7 @@ curl --location 'http://127.0.0.1:8000/visited_links' \
 http://127.0.0.1:8000/visited_domains?start=1&end=9999999999
 ```
 curl --location --request GET 'http://127.0.0.1:8000/visited_domains?start=1&end=9999999999' \
---header 'Authorization: Token <ВАШ auth_token ИЗ ШАГА 2>' \
+--header 'Authorization: Token <ВАШ auth_token ИЗ ШАГА 2 >' \
 --header 'Content-Type: application/json' \
 --header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
 --data '{
