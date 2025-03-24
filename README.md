@@ -11,62 +11,50 @@ METRICS - http://127.0.0.1:8000/metrics
 DOCUMENTATION API - http://127.0.0.1:8000/swagger/?format=openapi
 
 Для того чтобы начать пользоваться приложением вам нужно:
-1) Зарегистрировать пользователя:
+1) Зарегистрировать пользователя по методу POST:
 http://127.0.0.1:8000/api/auth/users/
-```
-curl --location 'http://127.0.0.1:8000/api/auth/users/' \
 
---header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7456hTkc' \
+`{
+    "username": "example",
+    "password": "example"
+}`
 
---form 'username="root"' \
-
---form 'password="root"'
-```
-2) Авторизоваться и получить access_token:
+2) Авторизоваться и получить access_token по методу POST:
 http://127.0.0.1:8000/auth/token/login/
 
-```
-curl --location 'http://127.0.0.1:8000/auth/token/login/' \
+**_REQUEST:_**
 
---header 'Cookie: csrftoken=cguiLxO9TwfglI56V7UdG7hTkc' \
+`{
+    "username": "example",
+    "password": "example"
+}`
 
---form 'username="root"' \
+_**RESPONSE:**_
 
---form 'password="Tkbcttdrf"'
-```
+`{
+    "auth_token": "776fdfkg3dgb5dfh75e59b6af6bb6e58fb724162"
+}`
+
 3) POST записей в базу данных:
 
 #### _Важно в запросе использовать свой ACCESS_TOKEN_
 
 http://127.0.0.1:8000/visited_links
 ```
-curl --location 'http://127.0.0.1:8000/visited_links' \
-
---header 'Authorization: Token <YOUR_ACCESS_TOKEN>' \
-
---header 'X-User-ID: 2' \
-
---header 'Content-Type: application/json' \
-
---header 'Cookie: csrftoken=cguiLxO9TfgtBlIUy8sV7UdG7hTkc' \
-
---data '{
-
-    "user_id": <ВАШ_USER_ID>,
-
-    "urls": [
-
-      "https://ya.ru/",
-
-      "https://ya.ru/search/?text=мемы+с+котиками",
-
-      "https://paspdf.ru",
-
-      "https://stackoverflow.com/questions/65724760/how-it-is"
-
-    ]
-
+curl --location 'http://127.0.0.1:8000/visited_links' \
+--header 'Authorization: Token <ВАШ auth_token ИЗ ШАГА 2>' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
+--data '{
+    "user_id": 1,
+    "urls": [
+      "https://ya.ru/",
+      "https://ya.ru/search/?text=мемы+с+котиками",
+      "https://paspdf.ru",
+      "https://stackoverflow.com/questions/65724760/how-it-is"
+    ]
 }'
+
 ```
 4) GET на получение посещенных URL-адресов.
 
@@ -74,14 +62,12 @@ curl --location 'http://127.0.0.1:8000/visited_links' \
 
 http://127.0.0.1:8000/visited_domains?start=1&end=9999999999
 ```
-curl --location --request GET 'http://127.0.0.1:8000/visited_domains?start=1&end=9999999999' \
-
---header 'Authorization: Token bfa2b190d10f2473dfg139387379fccfdf3' \
-
---header 'X-User-ID: 2' \
-
---header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tfgsV7UdG7hTkc' \
-
---form 'user_id="2"'
+curl --location --request GET 'http://127.0.0.1:8000/visited_domains?start=1&end=9999999999' \
+--header 'Authorization: Token <ВАШ auth_token ИЗ ШАГА 2>' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
+--data '{
+    "user_id": 1
+}'
 ```
 
