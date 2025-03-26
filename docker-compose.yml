@@ -72,12 +72,6 @@ services:
     volumes:
       - ./redis/data/:/usr/utils/app
 
-#  prometheus:
-#    image: prom/prometheus
-#    ports:
-#      - "9090:9090"
-#    volumes:
-#      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
 
   graphite:
     image: graphiteapp/graphite-statsd
@@ -106,19 +100,6 @@ volumes:
   graphite_data:
   grafana_storage:
 
-
-#  dashboard:
-#    image: tracker
-#    entrypoint: ""
-#    command: celery flower -app=tracker --port=5555 --broker=redis://redis:6379/0
-#    restart: always
-#    ports:
-#      - 5555:5555
-#    depends_on:
-#      - web
-#      - redis
-#      - celery
-#      - db
 
 
 
