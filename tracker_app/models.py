@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class UserDomainsHistory(models.Model):
-    user_id = models.CharField(max_length=100)
+    user_id = models.IntegerField()
     domain = models.CharField(max_length=100)
 
     created_at = models.BigIntegerField(default=0)

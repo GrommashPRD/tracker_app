@@ -1,97 +1,100 @@
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.utils import timezone
 import logging
-import datetime
-import pytz
 
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from tracker_app import serializers
-from tracker_app.models import UserDomainsHistory
-from tracker_app.serializers import VisitedLinksSerializer, DomainSerializer
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from tracker_app.repository import get_user_domains_in_range
+from tracker_app.serializers import VisitedLinksSerializer, ViewPeriodSerializer
+from tracker_app.tasks import add_data_in_database
 from tracker_app.utils import linksParser
+from tracker_app.swagger_files.swagger_schemas import get_user_urls_schema, post_user_urls_schema
 
 # Create your views here.
-logger = logging.getLogger('main')
+
+
+logger = logging.getLogger('django')
+
 
 class LinksView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
+    @post_user_urls_schema()
     def post(self, request):
-        user_id = request.META.get('HTTP_X_USER_ID')
-        if not user_id:
-            return Response(
-                {'message': 'Request has not X-User-ID'},
-                status=403
-            )
+        user_id_from_request = request.data.get('user_id')
+
+        if user_id_from_request is None:
+            logger.warning('User ID is None')
+            return Response({"error": "User ID cannot be None."}, status=400)
+
+        if not isinstance(user_id_from_request, int):
+            logger.warning("Invalid user ID: %(user_id_from_request)s. Expected int.")
+            return Response({'message': 'user_id must be a int', 'code': 'invalid_user_id'}, status=400)
+
+        if user_id_from_request != request.user.id:
+            logger.warning("Another user ID")
+            return Response({"error": "Вы вводите не свой ID"}, status=401)
+
         serializer = VisitedLinksSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         urls = serializer.validated_data['urls']
 
+        if not urls:
+            logger.warning("Empty URL list")
+            return Response({'message': 'URL list cannot be empty', 'code': 'empty_url_list'}, status=400)
         try:
             domains = linksParser.get_unique_domains(urls)
-        except Exception as err:
-            logger.error(err)
-            return Response({'message': 'Internal error', 'code': 'internal_error'}, status=500)
-
-        now_timestamp_seconds = int((timezone.now() - datetime.datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds())
+        except ValueError as ve:
+            logger.error("Value error: %(ve)s")
+            return Response({'message': 'Invalid URL list', 'code': 'invalid_url_list'}, status=400)
 
 
-        for domain in domains:
-            obj, created = UserDomainsHistory.objects.get_or_create(user_id=user_id, domain=domain)
-            if created:
-                obj.created_at = now_timestamp_seconds
-            obj.updated_at = now_timestamp_seconds
-            obj.save()
+        add_data_in_database.delay(
+            user_id_from_request,
+            domains,
+        )
 
         return Response({'status': 'ok'}, status=200)
 
 
 class DomainsView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
+    @get_user_urls_schema()
     def get(self, request):
-        user_id = request.META.get('HTTP_X_USER_ID')
-        if not user_id:
-            return Response(
-                {'status': 'Request has not X-User-ID'},
-                status=403
-            )
 
-        serializer = serializers.ViewPeriodSerializer(data=request.query_params)
+        user_id_from_request = request.query_params.get('user_id')
+
+        if user_id_from_request is None:
+            logger.warning('User ID is None')
+            return Response({"warning": "Введите Ваш ID"}, status=400)
+
+        if int(user_id_from_request) != request.user.id:
+            logger.warning("Another user ID")
+            return Response({"warning": "Вы вводите не свой ID"}, status=401)
+
+        serializer = ViewPeriodSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
         start_period = serializer.validated_data.get('start')
         end_period = serializer.validated_data.get('end')
 
         try:
-            user_domains_in_range = self._get_user_domains_in_range(
-                user_id=user_id,
+            user_domains_in_range = get_user_domains_in_range(
+                user_id=user_id_from_request,
                 start_period=start_period,
                 end_period=end_period,
             )
-        except Exception as err:
-            logger.error(err)
-            return Response({'status': 'Internal error', 'code': 'internal_error'}, status=500)
+        except ValueError as ve:
+            logger.error(f"Value error: %(ve)s")
+            return Response({'status': 'Bad request', 'code': 'bad_request'}, status=400)
+        except TypeError as te:
+            logger.error(f"Type error during serialization: %(te)s")
+            return Response({'status': 'Serialization error', 'code': 'serialization_error'}, status=500)
 
         return Response(user_domains_in_range)
-
-
-    @staticmethod
-    def _get_user_domains_in_range(user_id, start_period, end_period):
-        user_domains_in_range = UserDomainsHistory.objects.filter(
-            user_id=user_id, created_at__gte=start_period, created_at__lt=end_period
-        )
-
-        user_history = DomainSerializer(user_domains_in_range, many=True)
-
-        user_domains_in_range = {'domains': set(), 'status': 'ok'}
-        for d in list(user_history.data):
-            user_domains_in_range['domains'].add(d.get('domain'))
-
-        return user_domains_in_range
-
-
-
-

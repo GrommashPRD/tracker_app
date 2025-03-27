@@ -1,10 +1,40 @@
 import pytest
-
-from tracker_app.models import UserDomainsHistory
+from rest_framework import status
 from rest_framework.test import APIClient
+from django.contrib.auth import get_user_model
+from tracker_app.models import UserDomainsHistory
 
-client = APIClient()
 
+User = get_user_model()
+
+
+@pytest.fixture
+def api_client():
+    return APIClient()
+
+#Создаем юзера который будет автирозовываться для тестов.
+def create_and_login_user(api_client, username='testuser', password='testpassword123'):
+    #Создание тест-юзера
+    user_data = {
+        'username': username,
+        'password': password,
+    }
+    response = api_client.post('/api/auth/users/', user_data, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
+
+    #Авторизовываем тест-юзера
+    login_data = {
+        'username': username,
+        'password': password
+    }
+    response = api_client.post('/auth/token/login/', login_data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+
+    #Вытягиваем токен access
+    token = response.data['auth_token']
+    api_client.credentials(HTTP_AUTHORIZATION='Token ' + token)
+
+    return User.objects.get(username=username)
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
@@ -35,26 +65,34 @@ client = APIClient()
         ),
     ]
 )
+#Получение URL по заданным параметрам
+def test_green_get_domains(api_client, start, end, expected_domains):
+    user = create_and_login_user(api_client)
 
-def test_green_test(start,
-               end,
-               expected_domains
-):
-    domain_test_1 = UserDomainsHistory.objects.create(user_id='1', domain='ya.ru', created_at=123)
-    domain_test_2 = UserDomainsHistory.objects.create(user_id='1', domain='ya.ru', created_at=124)
-    domain_test_3 = UserDomainsHistory.objects.create(user_id='1', domain='test.ru', created_at=124)
+    UserDomainsHistory.objects.create(user_id=user.pk, domain='ya.ru', created_at=123)
+    UserDomainsHistory.objects.create(user_id=user.pk, domain='ya.ru', created_at=124)
+    UserDomainsHistory.objects.create(user_id=user.pk, domain='test.ru', created_at=124)
 
-    response = client.get('/visited_domains', {'start': start, 'end': end}, HTTP_X_USER_ID='1')
+    response = api_client.get('/visited_domains', {'user_id': user.pk, "start": start, "end": end}, format='json')
 
+    if response.status_code != 200:
+        print(response.data)  # Для отладки
     assert response.status_code == 200
     assert set(response.data['domains']) == expected_domains
 
-def test_no_domains():
-    response = client.get('/visited_domains', {'start': 1, 'end': 2})
+#Юзер пытается посмотреть URL адреса другого ID
+@pytest.mark.django_db
+def test_alien_id():
+    user = User.objects.create(username='test1', password='test2')
 
-    assert response.status_code == 403
+    client = APIClient()
+    client.login(username='test1', password='test2')
 
+    response = client.get('/visited_domains', {"user_id": 12, "start":1 , "end": 2}, format='json')
 
+    assert response.status_code == 401
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     ('start', 'end'),
     [
@@ -85,16 +123,15 @@ def test_no_domains():
         ),
     ]
 )
-
-def test_wrong_params(
-        start,
-        end
-):
+#Тесты с неверными форматами данных
+def test_wrong_params(api_client, start, end):
+    user = create_and_login_user(api_client)
     params = {}
     if start:
         params['start'] = start
     if end:
         params['end'] = end
-    response = client.get('/visited_domains', params, HTTP_X_USER_ID='1')
+    response = api_client.get('/visited_domains', params, HTTP_X_USER_ID='1')
 
     assert response.status_code == 400
+

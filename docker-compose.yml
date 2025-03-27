@@ -2,31 +2,109 @@ version: '3.9'
 
 services:
   web:
-    build: .
     image: tracker
     container_name: checker
-    restart: always
     command: runserver 0.0.0.0:8000
     ports:
       - 8000:8000
     env_file:
-      - ./.env.db
+      - ./.env.dev
     depends_on:
       - migrate
 
   db:
     image: postgres:17
+    container_name: tracker_db
     restart: always
     env_file:
       - ./.env.db
     ports:
-      - 5432:5432
+      - 54321:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   migrate:
     image: tracker
-    restart: on-failure
     command: migrate
     env_file:
-      - ./.env.db
+      - ./.env.dev
     depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
+
+  celery:
+    image: tracker
+    entrypoint: ""
+    command: celery -A tracker worker -l INFO
+    restart: always
+    volumes:
+      - ./celery/data/:/usr/utils/data/celery
+    env_file:
+      - ./.env.celery.flower
+    depends_on:
+      - web
+      - redis
       - db
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+
+  flower:
+    image: tracker
+    entrypoint: ""
+    ports:
+      - 5555:5555
+    command: celery -A tracker flower
+    volumes:
+      - ./.:/app
+    env_file:
+      - ./.env.celery.flower
+    depends_on:
+      - web
+      - redis
+      - celery
+      - db
+
+  redis:
+    image: redis:4-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis/data/:/usr/utils/app
+
+
+  graphite:
+    image: graphiteapp/graphite-statsd
+    ports:
+      - "8080:80"
+    environment:
+      - GRAPHITE_DBNAME=graphite
+      - GRAPHITE_DBUSER=graphite
+      - GRAPHITE_DBPASS=graphite
+    volumes:
+      - graphite_data:/opt/graphite/storage
+
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_storage:/var/lib/grafana
+    depends_on:
+      - graphite
+
+
+volumes:
+  graphite_data:
+  grafana_storage:
+
+
+
+
+

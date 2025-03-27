@@ -1,5 +1,3 @@
-from email._header_value_parser import Domain
-
 from rest_framework import serializers
 
 from tracker_app.models import UserDomainsHistory
@@ -26,6 +24,7 @@ class ViewPeriodSerializer(serializers.Serializer):
         return data
 
 class DomainSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField()
     class Meta:
         model = UserDomainsHistory
         fields = ('user_id', 'domain', 'created_at')
