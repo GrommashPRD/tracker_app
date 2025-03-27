@@ -12,7 +12,7 @@ def get_user_urls_schema():
                               type=openapi.TYPE_STRING),
             openapi.Parameter('end', openapi.IN_QUERY, description="Конец временного диапазона",
                               type=openapi.TYPE_STRING),
-            openapi.Parameter('X-User-ID', openapi.IN_HEADER, description="ID пользователя", type=openapi.TYPE_STRING)
+            openapi.Parameter('user_id', openapi.IN_QUERY, description="ID пользователя", type=openapi.TYPE_STRING)
         ],
         responses={
             200: openapi.Response(
@@ -27,7 +27,7 @@ def get_user_urls_schema():
                 )
             ),
             403: openapi.Response(
-                description="Запрос не содержит X-User-ID"
+                description="Запрос не содержит user_id"
             ),
             500: openapi.Response(
                 description="Внутренняя ошибка сервера"
@@ -38,27 +38,38 @@ def get_user_urls_schema():
 
 def post_user_urls_schema():
     return swagger_auto_schema(
-        operation_description="Создание пользователя и добавление url-адрессов либо обновление url-адрессов у имеющегося пользователя.",
-        manual_parameters=[
-            openapi.Parameter(
-                'X-User-ID',
-                openapi.IN_HEADER,
-                description="ID пользователя, отправляемый в заголовке запроса.",
-                type=openapi.TYPE_STRING,
-                required=True
-            )
-        ],
-        request_body=VisitedLinksSerializer,
+        operation_description="Добавление / Обновление url-адресов для user_id.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description="ID пользователя (целое число)"),
+                'urls': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Schema(type=openapi.TYPE_STRING, description="Список URL для обработки")
+                ),
+            },
+            required=['user_id', 'urls'],  # Укажите обязательные поля
+        ),
         responses={
-            200: openapi.Response(
-                description="Успешное выполнение запроса.",
-                schema=VisitedLinksSerializer
-            ),
-            403: openapi.Response(
-                description="Отсутствует X-User-ID в заголовке."
-            ),
-            500: openapi.Response(
-                description="Внутренняя ошибка сервера."
-            )
+            200: openapi.Response('Успешный ответ', openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'status': openapi.Schema(type=openapi.TYPE_STRING, example='ok')
+                }
+            )),
+            400: openapi.Response('Ошибка 400', openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING),
+                    'message': openapi.Schema(type=openapi.TYPE_STRING),
+                    'code': openapi.Schema(type=openapi.TYPE_STRING),
+                }
+            )),
+            401: openapi.Response('Ошибка 401', openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'error': openapi.Schema(type=openapi.TYPE_STRING)
+                }
+            )),
         }
     )

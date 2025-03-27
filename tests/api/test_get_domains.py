@@ -2,8 +2,8 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
-
 from tracker_app.models import UserDomainsHistory
+
 
 User = get_user_model()
 
@@ -69,12 +69,14 @@ def create_and_login_user(api_client, username='testuser', password='testpasswor
 def test_green_get_domains(api_client, start, end, expected_domains):
     user = create_and_login_user(api_client)
 
-    UserDomainsHistory.objects.create(user_id=user.id, domain='ya.ru', created_at=123)
-    UserDomainsHistory.objects.create(user_id=user.id, domain='ya.ru', created_at=124)
-    UserDomainsHistory.objects.create(user_id=user.id, domain='test.ru', created_at=124)
+    UserDomainsHistory.objects.create(user_id=user.pk, domain='ya.ru', created_at=123)
+    UserDomainsHistory.objects.create(user_id=user.pk, domain='ya.ru', created_at=124)
+    UserDomainsHistory.objects.create(user_id=user.pk, domain='test.ru', created_at=124)
 
-    response = api_client.get('/visited_domains', {"user_id": user.id,"start": start, "end": end}, format='json')
+    response = api_client.get('/visited_domains', {'user_id': user.pk, "start": start, "end": end}, format='json')
 
+    if response.status_code != 200:
+        print(response.data)  # Для отладки
     assert response.status_code == 200
     assert set(response.data['domains']) == expected_domains
 

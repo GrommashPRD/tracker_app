@@ -178,6 +178,32 @@ REST_FRAMEWORK = {
     ]
 }
 
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        }
+    },
+}
+
+REDOC_SETTINGS = {
+   'LAZY_RENDERING': False,
+
+}
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/0',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+
 CELERY_TIMEZONE = 'Europe/Moscow'
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", 'redis://redis:6379/0')

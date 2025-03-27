@@ -2,6 +2,20 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
+import subprocess
+import time
+
+@pytest.fixture(scope='session', autouse=True)
+def start_redis():
+    # Запускаем Redis
+    redis_process = subprocess.Popen(['docker', 'run', 'redis'])
+    # Даем время на запуск
+    time.sleep(5)
+    yield
+    # Останавливаем Redis после завершения тестов
+    redis_process.terminate()
+
+
 
 User = get_user_model()
 
@@ -105,4 +119,4 @@ def test_create_post_with_invalid_user_id(api_client):
     response = api_client.post('/visited_links', data=links_data, format='json')
 
     assert response.status_code == 400
-    assert {'message': 'user_id must be a number', 'code': 'invalid_user_id'} == response.data
+    assert {'message': 'user_id must be a int', 'code': 'invalid_user_id'} == response.data

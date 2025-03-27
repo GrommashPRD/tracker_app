@@ -4,7 +4,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from tracker_app.repository import get_user_domains_in_range
 from tracker_app.serializers import VisitedLinksSerializer, ViewPeriodSerializer
 from tracker_app.tasks import add_data_in_database
@@ -30,12 +31,12 @@ class LinksView(APIView):
             return Response({"error": "User ID cannot be None."}, status=400)
 
         if not isinstance(user_id_from_request, int):
-            logger.warning(f"Invalid user ID: {user_id_from_request}. Expected int.")
+            logger.warning("Invalid user ID: %(user_id_from_request)s. Expected int.")
             return Response({'message': 'user_id must be a int', 'code': 'invalid_user_id'}, status=400)
 
         if user_id_from_request != request.user.id:
             logger.warning("Another user ID")
-            return Response({"error": "You are not entering your ID."}, status=401)
+            return Response({"error": "Вы вводите не свой ID"}, status=401)
 
         serializer = VisitedLinksSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -48,7 +49,7 @@ class LinksView(APIView):
         try:
             domains = linksParser.get_unique_domains(urls)
         except ValueError as ve:
-            logger.error(f"Value error: {ve}")
+            logger.error("Value error: %(ve)s")
             return Response({'message': 'Invalid URL list', 'code': 'invalid_url_list'}, status=400)
 
 
@@ -67,12 +68,14 @@ class DomainsView(APIView):
     @get_user_urls_schema()
     def get(self, request):
 
-        user_id_from_request = request.data.get('user_id')
+        user_id_from_request = request.query_params.get('user_id')
 
         if user_id_from_request is None:
+            logger.warning('User ID is None')
             return Response({"warning": "Введите Ваш ID"}, status=400)
 
         if int(user_id_from_request) != request.user.id:
+            logger.warning("Another user ID")
             return Response({"warning": "Вы вводите не свой ID"}, status=401)
 
         serializer = ViewPeriodSerializer(data=request.query_params)
@@ -88,10 +91,10 @@ class DomainsView(APIView):
                 end_period=end_period,
             )
         except ValueError as ve:
-            logger.error(f"Value error: {ve}")
+            logger.error(f"Value error: %(ve)s")
             return Response({'status': 'Bad request', 'code': 'bad_request'}, status=400)
         except TypeError as te:
-            logger.error(f"Type error during serialization: {te}")
+            logger.error(f"Type error during serialization: %(te)s")
             return Response({'status': 'Serialization error', 'code': 'serialization_error'}, status=500)
 
         return Response(user_domains_in_range)

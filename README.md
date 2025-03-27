@@ -1,6 +1,13 @@
 Проект для отслеживания url-адрессов.
 
-Для того чтобы начать пользование используйте команды:
+Для запуска на локальном компьютере:
+1) Склонируйте репозиотрий 
+2) Установите зависимости `pip install req.txt`
+3) Проведите миграции `python manage.py migrate`
+4) Создайте суперпользователя `python manage.py createsuperuser`
+5) Запустите сервер `python manage.py runserver`
+
+Для начала - используйте команды:
 1) make start
 2) make stop
 3) make test
@@ -14,9 +21,19 @@ DOCUMENTATION API - http://127.0.0.1:8000/swagger/
 1) Зарегистрировать пользователя по методу POST:
 http://127.0.0.1:8000/api/auth/users/
 
+**_REQUEST:_**
+
 `{
-    "username": "example",
-    "password": "example"
+    "username": "activeuser",
+    "password": "superpass569"
+}`
+
+RESPONSE:
+
+`{
+    "email": "",
+    "username": "activeuser",
+    "id": 1
 }`
 
 2) Авторизоваться и получить access_token по методу POST:
@@ -25,8 +42,8 @@ http://127.0.0.1:8000/auth/token/login/
 **_REQUEST:_**
 
 `{
-    "username": "example",
-    "password": "example"
+    "username": "activeuser",
+    "password": "superpass569"
 }`
 
 _**RESPONSE:**_
@@ -38,6 +55,8 @@ _**RESPONSE:**_
 3) POST записей в базу данных:
 
 #### _Важно в запросе использовать свой ACCESS_TOKEN_
+
+### **_user_id берете из первого пункта._**
 
 http://127.0.0.1:8000/visited_links
 ```
@@ -62,12 +81,8 @@ curl --location 'http://127.0.0.1:8000/visited_links' \
 
 http://127.0.0.1:8000/visited_domains?start=1&end=9999999999
 ```
-curl --location --request GET 'http://127.0.0.1:8000/visited_domains?start=1&end=9999999999' \
---header 'Authorization: Token <ВАШ auth_token ИЗ ШАГА 2 >' \
---header 'Content-Type: application/json' \
---header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
---data '{
-    "user_id": 1
-}'
+curl --location 'http://127.0.0.1:8000/visited_domains?user_id=1&start=1&end=999999999999999999' \
+--header 'Authorization: Token <ВАШ auth_token ИЗ ШАГА 2>' \
+--header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc'
 ```
 
