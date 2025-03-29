@@ -19,7 +19,7 @@ services:
     env_file:
       - ./.env.db
     ports:
-      - 54321:5432
+      - 5432:5432
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 10s
