@@ -7,15 +7,10 @@ import time
 
 @pytest.fixture(scope='session', autouse=True)
 def start_redis():
-    # Запускаем Redis
-    redis_process = subprocess.Popen(['docker', 'run', 'redis'])
-    # Даем время на запуск
+    redis_process = subprocess.Popen(['docker', 'run', '--rm', '-d', '-p', '6379:6379', 'redis'])
     time.sleep(5)
     yield
-    # Останавливаем Redis после завершения тестов
     redis_process.terminate()
-
-
 
 User = get_user_model()
 

@@ -1,3 +1,6 @@
+VENV_DIR = venv
+REQUIREMENTS = req.txt
+
 start:
 	@docker build -t tracker .
 	@docker-compose up -d
@@ -13,7 +16,7 @@ test:
 	    -e POSTGRES_PASSWORD=postgres \
 	    -e POSTGRES_USER=postgres \
 	    -e POSTGRES_DB=tracker \
-	    -d -p 5432:5432 postgres:17
+	    -d -p 54321:5432 postgres:17
 	@container_name=test_postgres; \
 	pattern="ready to accept connections"; \
 	while ! docker logs "$$container_name" | grep -q "$$pattern"; do \
@@ -28,4 +31,17 @@ test:
 migrate:
 	@docker-compose run web python manage.py migrate
 
-.PHONY: start stop test migrate makemigrations
+venv:
+	@if [ ! -d $(VENV_DIR) ]; then \
+		echo "Creating virtual environment..."; \
+		python3 -m venv $(VENV_DIR); \
+	fi
+
+install: venv
+	@$(VENV_DIR)/bin/pip install --upgrade pip
+	@$(VENV_DIR)/bin/pip install -r $(REQUIREMENTS)
+
+clean:
+	@rm -rf $(VENV_DIR)
+
+.PHONY: start stop test migrate venv install clean

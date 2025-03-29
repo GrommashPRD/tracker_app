@@ -4,8 +4,6 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 from tracker_app.repository import get_user_domains_in_range
 from tracker_app.serializers import VisitedLinksSerializer, ViewPeriodSerializer
 from tracker_app.tasks import add_data_in_database
@@ -28,11 +26,11 @@ class LinksView(APIView):
 
         if user_id_from_request is None:
             logger.warning('User ID is None')
-            return Response({"error": "User ID cannot be None."}, status=400)
+            return Response({"error": "User ID не может быть пустым."}, status=400)
 
         if not isinstance(user_id_from_request, int):
-            logger.warning("Invalid user ID: %(user_id_from_request)s. Expected int.")
-            return Response({'message': 'user_id must be a int', 'code': 'invalid_user_id'}, status=400)
+            logger.warning("Invalid user ID: Expected int %s." % (user_id_from_request))
+            return Response({'message': 'User ID должно быть числом', 'code': 'invalid_user_id'}, status=400)
 
         if user_id_from_request != request.user.id:
             logger.warning("Another user ID")
@@ -45,13 +43,12 @@ class LinksView(APIView):
 
         if not urls:
             logger.warning("Empty URL list")
-            return Response({'message': 'URL list cannot be empty', 'code': 'empty_url_list'}, status=400)
+            return Response({'message': 'Список URL не должен быть пустым', 'code': 'empty_url_list'}, status=400)
         try:
             domains = linksParser.get_unique_domains(urls)
         except ValueError as ve:
-            logger.error("Value error: %(ve)s")
-            return Response({'message': 'Invalid URL list', 'code': 'invalid_url_list'}, status=400)
-
+            logger.error("Value error: %s", ve)
+            return Response({'message': 'Неправильный список URL', 'code': 'invalid_url_list'}, status=400)
 
         add_data_in_database.delay(
             user_id_from_request,
@@ -91,10 +88,10 @@ class DomainsView(APIView):
                 end_period=end_period,
             )
         except ValueError as ve:
-            logger.error(f"Value error: %(ve)s")
+            logger.error(f"Value error: %s", ve)
             return Response({'status': 'Bad request', 'code': 'bad_request'}, status=400)
         except TypeError as te:
-            logger.error(f"Type error during serialization: %(te)s")
+            logger.error(f"Type error during serialization: %s", te)
             return Response({'status': 'Serialization error', 'code': 'serialization_error'}, status=500)
 
         return Response(user_domains_in_range)
