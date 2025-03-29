@@ -23,11 +23,15 @@ http://127.0.0.1:8000/api/auth/users/
 
 **_REQUEST:_**
 
-`{
+```
+curl --location 'http://127.0.0.1:8000/api/auth/users/' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
+--data '{
     "username": "activeuser",
     "password": "superpass569"
-}`
-
+}'
+```
 RESPONSE:
 
 `{
@@ -40,12 +44,15 @@ RESPONSE:
 http://127.0.0.1:8000/auth/token/login/
 
 **_REQUEST:_**
-
-`{
+```
+curl --location 'http://127.0.0.1:8000/auth/token/login/' \
+--header 'Content-Type: application/json' \
+--header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
+--data '{
     "username": "activeuser",
     "password": "superpass569"
-}`
-
+}'
+```
 _**RESPONSE:**_
 
 `{
