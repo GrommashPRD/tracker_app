@@ -27,9 +27,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('tracker_app.urls')),
     path('metrics/', csrf_exempt(make_wsgi_app())),
-    path('api/auth/users/', djoser_views.UserViewSet.as_view({'post': 'create'}), name='user-list'),
+    # path('api/auth/users/', djoser_views.UserViewSet.as_view({'post': 'create'}), name='user-create'),
     re_path(r'^auth/token/login/$', TokenCreateView.as_view(), name='token-login'),
     re_path(r'^auth/token/logout/$', TokenDestroyView.as_view(), name='token-logout'),
+    path('', include('users.urls')),
 ]
 
 urlpatterns += doc_urls
