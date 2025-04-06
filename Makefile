@@ -11,23 +11,33 @@ stop:
 test:
 	@docker-compose down
 	@docker stop test_postgres || exit 0
+	@docker stop test_redis || exit 0
 	@docker pull postgres:17
+	@docker pull redis:7
 	@docker run --rm --name test_postgres \
-	    -e POSTGRES_PASSWORD=postgres \
+	    -e POSTGRES_PASSWORD=postgress \
 	    -e POSTGRES_USER=postgres \
 	    -e POSTGRES_DB=tracker \
-	    -d -p 54321:5432 postgres:17
+	    -d -p 5432:5432 postgres:17
+	@docker run --rm --name test_redis -d -p 6379:6379 redis:7
 	@container_name=test_postgres; \
 	pattern="ready to accept connections"; \
 	while ! docker logs "$$container_name" | grep -q "$$pattern"; do \
-	  echo "Waiting for the container to be ready..."; \
+	  echo "Waiting for PostgreSQL container to be ready..."; \
 	  sleep 0.1; \
 	done; \
-	echo "Container is ready"
+	echo "PostgreSQL container is ready"
+	@container_name=test_redis; \
+	pattern="Ready to accept connections"; \
+	while ! docker logs "$$container_name" | grep -q "$$pattern"; do \
+	  echo "Waiting for Redis container to be ready..."; \
+	  sleep 0.1; \
+	done; \
+	echo "Redis container is ready"
 	@python manage.py migrate
 	@python -m pytest
 	@docker stop test_postgres
-
+	@docker stop test_redis
 migrate:
 	@docker-compose run web python manage.py migrate
 

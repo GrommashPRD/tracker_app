@@ -19,7 +19,7 @@ def create_and_login_user(api_client, username='testuser', password='testpasswor
         'username': username,
         'password': password,
     }
-    response = api_client.post('/api/auth/users/', user_data, format='json')
+    response = api_client.post('/auth/register/', user_data, format='json')
     assert response.status_code == status.HTTP_201_CREATED
 
     #Авторизовываем тест-юзера

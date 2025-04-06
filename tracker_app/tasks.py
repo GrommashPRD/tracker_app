@@ -6,7 +6,7 @@ from django.db import IntegrityError
 
 from tracker_app.models import UserDomainsHistory
 from tracker_app.serializers import DomainSerializer
-from tracker_app.actualTimestamp import time_constants
+from tracker_app.TimesTamp import time_constants
 logger = logging.getLogger(__name__)
 
 
