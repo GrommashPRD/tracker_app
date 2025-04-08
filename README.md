@@ -13,7 +13,7 @@
 3) make test
 4) make migrate
 
-METRICS - http://127.0.0.1:8000/metrics
+METRICS - http://127.0.0.1:8000/prometheus/metrics
 
 DOCUMENTATION API - http://127.0.0.1:8000/swagger/
 
@@ -89,7 +89,8 @@ curl --location --request POST 'http://127.0.0.1:8000/visited_links' \
 
 #### _ОБЯЗАТЕЛЬНЫЕ ПАРАМЕТРЫ end и start_
 
-http://127.0.0.1:8000/visited_domains?start=1&end=9999999999
+http://127.0.0.1:8000/visited_domains?user_id=1&start=1&end=999999999999999999
+
 ```
 curl --location --request GET 'http://127.0.0.1:8000/visited_domains?user_id=1&start=1&end=999999999999999999' \
 --header 'Authorization: Token <ВАШ auth_token ИЗ ШАГА 2>' \

@@ -1,7 +1,7 @@
 from tracker_app.models import UserDomainsHistory
 from tracker_app.serializers import DomainSerializer
 
-class GetUserDomainsInRange:
+class DomainsInRange:
     def __init__(self, user_id: int, start_period: int, end_period: int):
         self.user_id = user_id
         self.start_period = start_period

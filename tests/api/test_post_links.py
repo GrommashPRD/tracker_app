@@ -72,7 +72,7 @@ def test_with_alien_id(api_client):
     response = api_client.post('/visited_links', data=links_data, format='json')
 
     assert response.status_code == 401
-    assert {'error': 'Вы вводите не свой ID'} == response.data
+    assert {"message": "Someone else's User ID", "code": "someone_elses_user_id"} == response.data
 
 
 #Тест что юзер передает пустой список URL
@@ -88,10 +88,10 @@ def test_create_post_with_empty_urls(api_client):
     response = api_client.post('/visited_links', data=links_data, format='json')
 
     assert response.status_code == 400  # Ожидаем ошибку из-за пустого списка
-    assert {'message': 'Список URL не должен быть пустым', 'code': 'empty_url_list'} == response.data
+    assert {"message": "Invalid URL list", "code": "invalid_url_list"} == response.data
 
 
-#Тест, что юзер передает ID неферного формата str вместо int
+#Тест, что юзер передает ID неверного формата str вместо int
 @pytest.mark.django_db
 def test_create_post_with_invalid_user_id(api_client):
     user = create_and_login_user(api_client)
@@ -106,4 +106,4 @@ def test_create_post_with_invalid_user_id(api_client):
     response = api_client.post('/visited_links', data=links_data, format='json')
 
     assert response.status_code == 400
-    assert {'message': 'User ID должно быть числом', 'code': 'invalid_user_id'} == response.data
+    assert {'message': 'User ID must be a it', 'code': 'invalid_user_id'} == response.data

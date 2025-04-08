@@ -19,7 +19,7 @@ test:
 	    -e POSTGRES_USER=postgres \
 	    -e POSTGRES_DB=tracker \
 	    -d -p 5432:5432 postgres:17
-	@docker run --rm --name test_redis -d -p 6379:6379 redis:7
+	@docker run --rm --name test_redis -d -p 6379:6379 redis:4-alpine
 	@container_name=test_postgres; \
 	pattern="ready to accept connections"; \
 	while ! docker logs "$$container_name" | grep -q "$$pattern"; do \
