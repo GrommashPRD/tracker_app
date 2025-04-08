@@ -4,7 +4,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from tracker_app.repository import get_user_domains_in_range
+from tracker_app.repository import GetUserDomainsInRange
 from tracker_app.serializers import VisitedLinksSerializer, ViewPeriodSerializer
 from tracker_app.tasks import add_data_in_database
 from tracker_app.utils import linksParser
@@ -75,6 +75,13 @@ class DomainsView(APIView):
             logger.warning("Another user ID")
             return Response({"warning": "Вы вводите не свой ID"}, status=401)
 
+        try:
+            user_id = int(user_id_from_request)
+        except ValueError:
+            logger.warning("Invalid user ID: Expected int %s." % (user_id_from_request))
+            return Response({'message': 'User ID должно быть числом', 'code': 'invalid_user_id'}, status=400)
+
+
         serializer = ViewPeriodSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
@@ -82,11 +89,13 @@ class DomainsView(APIView):
         end_period = serializer.validated_data.get('end')
 
         try:
-            user_domains_in_range = get_user_domains_in_range(
+            user_domains_history = GetUserDomainsInRange(
                 user_id=user_id_from_request,
                 start_period=start_period,
-                end_period=end_period,
+                end_period=end_period
             )
+            user_domains_in_range = user_domains_history.get_user_domains_in_range()
+
         except ValueError as ve:
             logger.error(f"Value error: %s", ve)
             return Response({'status': 'Bad request', 'code': 'bad_request'}, status=400)

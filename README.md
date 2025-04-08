@@ -17,14 +17,16 @@ METRICS - http://127.0.0.1:8000/metrics
 
 DOCUMENTATION API - http://127.0.0.1:8000/swagger/
 
-Для того чтобы начать пользоваться приложением вам нужно:
-1) Зарегистрировать пользователя по методу POST:
-http://127.0.0.1:8000/api/auth/users/
+## _Для того чтобы начать пользоваться приложением вам нужно:_
+
+1) Зарегистрировать пользователя:
+
+http://127.0.0.1:8000/auth/register/
 
 **_REQUEST:_**
 
 ```
-curl --location 'http://127.0.0.1:8000/api/auth/users/' \
+curl --location --request POST 'http://127.0.0.1:8000/auth/register/' \
 --header 'Content-Type: application/json' \
 --header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
 --data '{
@@ -34,18 +36,19 @@ curl --location 'http://127.0.0.1:8000/api/auth/users/' \
 ```
 RESPONSE:
 
-`{
+```
+{
     "email": "",
     "username": "activeuser",
     "id": 1
-}`
-
-2) Авторизоваться и получить access_token по методу POST:
+}
+```
+2) Авторизоваться и получить access_token:
 http://127.0.0.1:8000/auth/token/login/
 
 **_REQUEST:_**
 ```
-curl --location 'http://127.0.0.1:8000/auth/token/login/' \
+curl --location --request POST 'http://127.0.0.1:8000/auth/token/login/' \
 --header 'Content-Type: application/json' \
 --header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
 --data '{
@@ -67,7 +70,7 @@ _**RESPONSE:**_
 
 http://127.0.0.1:8000/visited_links
 ```
-curl --location 'http://127.0.0.1:8000/visited_links' \
+curl --location --request POST 'http://127.0.0.1:8000/visited_links' \
 --header 'Authorization: Token <ВАШ auth_token ИЗ ШАГА 2>' \
 --header 'Content-Type: application/json' \
 --header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc' \
@@ -88,7 +91,7 @@ curl --location 'http://127.0.0.1:8000/visited_links' \
 
 http://127.0.0.1:8000/visited_domains?start=1&end=9999999999
 ```
-curl --location 'http://127.0.0.1:8000/visited_domains?user_id=1&start=1&end=999999999999999999' \
+curl --location --request GET 'http://127.0.0.1:8000/visited_domains?user_id=1&start=1&end=999999999999999999' \
 --header 'Authorization: Token <ВАШ auth_token ИЗ ШАГА 2>' \
 --header 'Cookie: csrftoken=cguiLxO9Tw1YJ1tBlIUy8sV7UdG7hTkc'
 ```
