@@ -79,31 +79,23 @@ services:
       - ./.env.dev
 
 
-  graphite:
-    image: graphiteapp/graphite-statsd
+  prometheus:
+    image: prom/prometheus:v2.53.4
     ports:
-      - "8080:80"
-    environment:
-      - GRAPHITE_DBNAME=graphite
-      - GRAPHITE_DBUSER=graphite
-      - GRAPHITE_DBPASS=graphite
+      - "9090:9090"
     volumes:
-      - graphite_data:/opt/graphite/storage
-
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana-enterprise:11.6.0
     restart: always
     ports:
       - "3000:3000"
     volumes:
       - grafana_storage:/var/lib/grafana
-    depends_on:
-      - graphite
 
 
 volumes:
-  graphite_data:
   grafana_storage:
 
 

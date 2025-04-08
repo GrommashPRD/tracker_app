@@ -8,6 +8,10 @@ def get_user_urls_schema():
     return swagger_auto_schema(
         operation_description="Получить домены пользователя в заданном временном диапазоне.",
         manual_parameters=[
+            openapi.Parameter('Authorization', openapi.IN_HEADER,
+                              description="Токен аутентификации в формате Token {your_token}",
+                              type=openapi.TYPE_STRING,
+                              required=True),
             openapi.Parameter('start', openapi.IN_QUERY, description="Начало временного диапазона",
                               type=openapi.TYPE_STRING),
             openapi.Parameter('end', openapi.IN_QUERY, description="Конец временного диапазона",
@@ -39,6 +43,12 @@ def get_user_urls_schema():
 def post_user_urls_schema():
     return swagger_auto_schema(
         operation_description="Добавление / Обновление url-адресов для user_id.",
+        manual_parameters=[
+            openapi.Parameter('Authorization', openapi.IN_HEADER,
+                              description="Токен аутентификации в формате Token {your_token}",
+                              type=openapi.TYPE_STRING,
+                              required=True),
+        ],
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
