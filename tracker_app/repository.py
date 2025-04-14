@@ -1,6 +1,5 @@
 from tracker_app.models import UserDomainsHistory
 from tracker_app.serializers import DomainSerializer
-from django.db import IntegrityError
 
 import logging
 

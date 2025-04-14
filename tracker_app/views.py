@@ -1,5 +1,4 @@
 import logging
-import time
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -10,7 +9,7 @@ from tracker_app.serializers import VisitedLinksSerializer, ViewPeriodSerializer
 from tracker_app.tasks import add_data_in_database
 from tracker_app.utils import linksParser
 from tracker_app.swagger_files.swagger_schemas import get_user_urls_schema, post_user_urls_schema
-from prometheus_client import Counter, generate_latest
+from prometheus_client import Counter
 
 
 # Create your views here.
@@ -67,6 +66,8 @@ class DomainsView(APIView):
     @get_user_urls_schema()
     def get(self, request):
 
+        repo = repository.DomainsInRange
+
         REQUEST_COUNTER.labels(method='GET', path=request.path).inc()
 
         user_id_from_request = request.query_params.get('user_id')
@@ -97,7 +98,7 @@ class DomainsView(APIView):
         end_period = serializer.validated_data.get('end')
 
         try:
-            user_domains_history = repository.DomainsInRange(
+            user_domains_history = repo(
                 user_id=user_id_from_request,
                 start_period=start_period,
                 end_period=end_period
