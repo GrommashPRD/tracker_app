@@ -4,9 +4,10 @@ from typing import List
 from celery import shared_task
 from django.db import IntegrityError
 
-from tracker_app.models import UserDomainsHistory
 from tracker_app.serializers import DomainSerializer
-from tracker_app.TimesTamp import time_constants
+from tracker_app.TimesTamp import TimeConstants
+from .repository import DomainsInRange
+
 logger = logging.getLogger(__name__)
 
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 def add_data_in_database(user_id:int , domains: List[str]) -> None:
     logger.info('Adding data to database')
 
-    current_timestamp = time_constants.now_timestamp_seconds
+    current_timestamp = TimeConstants.now_timestamp_seconds()
 
     for domain in domains:
         data = {
@@ -35,11 +36,7 @@ def add_data_in_database(user_id:int , domains: List[str]) -> None:
             continue
 
         try:
-            obj, created = UserDomainsHistory.objects.get_or_create(user_id=user_id, domain=domain)
-            if created:
-                obj.created_at = current_timestamp
-            obj.updated_at = current_timestamp
-            obj.save()
+            DomainsInRange.add_user_domain_history(user_id=user_id, domain=domain, timestamp=current_timestamp)
         except IntegrityError as exc:
             logger.error('Error during saving data; user_id: %s; domain: %s; created_at: %s; err: %s', )
             raise exc

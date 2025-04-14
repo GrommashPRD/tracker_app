@@ -1,5 +1,11 @@
 from tracker_app.models import UserDomainsHistory
 from tracker_app.serializers import DomainSerializer
+from django.db import IntegrityError
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class DomainsInRange:
     def __init__(self, user_id: int, start_period: int, end_period: int):
@@ -21,3 +27,11 @@ class DomainsInRange:
             user_domains_in_range['domains'].add(d.get('domain'))
 
         return user_domains_in_range
+
+    @staticmethod
+    def add_user_domain_history(user_id, domain, timestamp):
+        obj, created = UserDomainsHistory.objects.get_or_create(user_id=user_id, domain=domain)
+        if created:
+            obj.created_at = timestamp
+        obj.updated_at = timestamp
+        obj.save()

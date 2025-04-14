@@ -1,4 +1,5 @@
 import pytest
+import logging
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
@@ -7,6 +8,7 @@ from tracker_app.models import UserDomainsHistory
 
 User = get_user_model()
 
+logger = logging.getLogger("tests")
 
 @pytest.fixture
 def api_client():
@@ -76,7 +78,7 @@ def test_green_get_domains(api_client, start, end, expected_domains):
     response = api_client.get('/visited_domains', {'user_id': user.pk, "start": start, "end": end}, format='json')
 
     if response.status_code != 200:
-        print(response.data)  # Для отладки
+        print(response.data)
     assert response.status_code == 200
     assert set(response.data['domains']) == expected_domains
 

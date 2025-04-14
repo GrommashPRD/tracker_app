@@ -3,16 +3,16 @@ from tracker_app.models import UserDomainsHistory
 
 class ErrInvalidValueStartOrEnd(Exception):
     """
-    Обрабатываем общие случаи \
-    при невалидном значении \
+    Обрабатываем общие случаи
+    при невалидном значении
     start & end переменных
     """
     pass
 
 class ErrInvalidUrlList(Exception):
     """
-    Обработчик ошибок \
-    связанных с поступающим \
+    Обработчик ошибок
+    связанных с поступающим
     списком URL
     """
     pass

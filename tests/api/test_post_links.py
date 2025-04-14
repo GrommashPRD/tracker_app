@@ -2,10 +2,13 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
+import logging
 import subprocess
 import time
 
 User = get_user_model()
+
+logger = logging.getLogger("tests")
 
 @pytest.fixture
 def api_client():
