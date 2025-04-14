@@ -75,13 +75,15 @@ class DomainsView(APIView):
             logger.warning('User ID is None')
             return Response({"message": "User ID can't be None", "code": "user_id_is_none"}, status=400)
 
+        if not user_id_from_request.isdigit():
+            logger.warning("Invalid user ID: Expected int %s.", user_id_from_request)
+            return Response({'message': 'User ID must be a int', 'code': 'invalid_user_id'}, status=400)
+
         if int(user_id_from_request) != request.user.id:
             logger.warning("Another user ID")
             return Response({"message": "Someone else's User ID", "code": "someone_elses_user_id"}, status=401)
 
-        if not user_id_from_request.isdigit():
-            logger.warning("Invalid user ID: Expected int %s.", user_id_from_request)
-            return Response({'message': 'User ID must be a int', 'code': 'invalid_user_id'}, status=400)
+
 
         serializer = ViewPeriodSerializer(data=request.query_params)
 

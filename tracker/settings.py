@@ -52,9 +52,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'tracker_app.middleware.StatsDMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
+
+logs_dir = os.path.join(BASE_DIR, 'logs')
+
+if not os.path.exists(logs_dir):
+    os.makedirs(logs_dir)
 
 LOGGING = {
     'version': 1,
@@ -88,7 +92,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': False,
         },
-        'app.tests': {
+        'tests': {
             'handlers': ['test_file'],
             'level': 'INFO',
             'propagate': False,
