@@ -6,21 +6,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from tracker_app import repository
 from tracker_app.serializers import VisitedLinksSerializer, ViewPeriodSerializer,ErrInvalidUrlList, ErrInvalidValueStartOrEnd
-from tracker_app.tasks import add_data_in_database
+from tracker_app import tasks as celery_task
 from tracker_app.utils import linksParser
 from tracker_app.swagger_files.swagger_schemas import get_user_urls_schema, post_user_urls_schema
 from prometheus_client import Counter
-
 
 # Create your views here.
 REQUEST_COUNTER = Counter('http_requests_total', 'Total number of HTTP requests', ['method', 'path'])
 
 logger = logging.getLogger('django')
 
-
 class LinksView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
 
     @post_user_urls_schema()
     def post(self, request):
@@ -51,7 +50,7 @@ class LinksView(APIView):
 
         domains = linksParser.get_unique_domains(urls)
 
-        add_data_in_database.delay(
+        celery_task.add_data_in_database.delay(
             user_id_from_request,
             domains,
         )
@@ -62,11 +61,10 @@ class LinksView(APIView):
 class DomainsView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    repo = repository.DomainsInRange()
 
     @get_user_urls_schema()
-    def get(self, request):
-
-        repo = repository.DomainsInRange
+    def get(self, request, repo=repo):
 
         REQUEST_COUNTER.labels(method='GET', path=request.path).inc()
 
@@ -85,7 +83,6 @@ class DomainsView(APIView):
             return Response({"message": "Someone else's User ID", "code": "someone_elses_user_id"}, status=401)
 
 
-
         serializer = ViewPeriodSerializer(data=request.query_params)
 
         try:
@@ -98,12 +95,11 @@ class DomainsView(APIView):
         end_period = serializer.validated_data.get('end')
 
         try:
-            user_domains_history = repo(
+            user_domains_in_range = repo.get_user_domains_in_range(
                 user_id=user_id_from_request,
                 start_period=start_period,
-                end_period=end_period
+                end_period=end_period,
             )
-            user_domains_in_range = user_domains_history.get_user_domains_in_range()
 
         except ValueError as ve:
             logger.error(f"Value error: %s", ve)
