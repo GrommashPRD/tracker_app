@@ -7,16 +7,14 @@ logger = logging.getLogger(__name__)
 
 
 class DomainsInRange:
-    def __init__(self, user_id: int, start_period: int, end_period: int):
-        self.user_id = user_id
-        self.start_period = start_period
-        self.end_period = end_period
+    def __init__(self):
+        self.dataProvider = UserDomainsHistory
 
-    def get_user_domains_in_range(self) -> dict:
+    def get_user_domains_in_range(self, user_id, start_period, end_period) -> dict:
         user_domains_in_range = UserDomainsHistory.objects.filter(
-            user_id=self.user_id,
-            created_at__gte=self.start_period,
-            created_at__lt=self.end_period
+            user_id=user_id,
+            created_at__gte=start_period,
+            created_at__lt=end_period
         )
 
         user_history = DomainSerializer(user_domains_in_range, many=True)

@@ -10,12 +10,14 @@ from .repository import DomainsInRange
 
 logger = logging.getLogger(__name__)
 
+repo = DomainsInRange()
 
 @shared_task
-def add_data_in_database(user_id:int , domains: List[str]) -> None:
+def add_data_in_database(user_id:int , domains: List[str], repo=repo) -> None:
     logger.info('Adding data to database')
 
     current_timestamp = TimeConstants.now_timestamp_seconds()
+
 
     for domain in domains:
         data = {
@@ -36,7 +38,7 @@ def add_data_in_database(user_id:int , domains: List[str]) -> None:
             continue
 
         try:
-            DomainsInRange.add_user_domain_history(user_id=user_id, domain=domain, timestamp=current_timestamp)
+            repo.add_user_domain_history(user_id=user_id, domain=domain, timestamp=current_timestamp)
         except IntegrityError as exc:
             logger.error('Error during saving data; user_id: %s; domain: %s; created_at: %s; err: %s', )
             raise exc
