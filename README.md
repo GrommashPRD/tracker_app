@@ -8,10 +8,11 @@
 5) Запустите сервер `python manage.py runserver`
 
 Для начала - используйте команды:
-1) make start
-2) make stop
-3) make test
-4) make migrate
+Прежде чем запускать `make test`, выполните команды `make venv`, `make install`.
+1) `make start`
+2) `make stop`
+3) `make test`
+4) `make migrate`
 
 METRICS - http://127.0.0.1:8000/prometheus/metrics
 
