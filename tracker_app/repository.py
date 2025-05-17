@@ -11,7 +11,7 @@ class DomainsInRange:
         self.dataProvider = UserDomainsHistory
 
     def get_user_domains_in_range(self, user_id, start_period, end_period) -> dict:
-        user_domains_in_range = UserDomainsHistory.objects.filter(
+        user_domains_in_range = self.dataProvider.objects.filter(
             user_id=user_id,
             created_at__gte=start_period,
             created_at__lt=end_period
@@ -25,9 +25,9 @@ class DomainsInRange:
 
         return user_domains_in_range
 
-    @staticmethod
-    def add_user_domain_history(user_id, domain, timestamp):
-        obj, created = UserDomainsHistory.objects.get_or_create(user_id=user_id, domain=domain)
+
+    def add_user_domain_history(self, user_id, domain, timestamp):
+        obj, created = self.dataProvider.objects.get_or_create(user_id=user_id, domain=domain)
         if created:
             obj.created_at = timestamp
         obj.updated_at = timestamp

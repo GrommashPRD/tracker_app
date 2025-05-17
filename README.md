@@ -1,11 +1,11 @@
 Проект для отслеживания url-адрессов.
 
 Для запуска на локальном компьютере:
-1) Склонируйте репозиотрий 
-2) Установите зависимости `pip install req.txt`
-3) Проведите миграции `python manage.py migrate`
-4) Создайте суперпользователя `python manage.py createsuperuser`
-5) Запустите сервер `python manage.py runserver`
+1) Склонируйте репозиотрий.
+2) Установите зависимости `pip install req.txt`.
+3) Проведите миграции `python manage.py migrate`.
+4) Создайте суперпользователя `python manage.py createsuperuser`.
+5) Запустите сервер `python manage.py runserver`.
 
 Для начала - используйте команды:
 Прежде чем запускать `make test`, выполните команды `make venv`, `make install`.

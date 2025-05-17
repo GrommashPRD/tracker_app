@@ -18,7 +18,7 @@ class ErrInvalidUrlList(Exception):
     pass
 
 
-class VisitedLinksSerializer(serializers.Serializer):
+class   VisitedLinksSerializer(serializers.Serializer):
     urls = serializers.ListField(child=serializers.URLField(), required=True)
     user_id = serializers.SerializerMetaclass
 
